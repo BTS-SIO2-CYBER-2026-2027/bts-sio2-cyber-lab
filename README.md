@@ -152,3 +152,48 @@ Pour lister les rapports générés :
 ```bash
 find reports -maxdepth 1 -type f -printf '%f\n' | sort
 ```
+
+## Deux ports à connaître dans Codespaces
+
+Le laboratoire démarre automatiquement deux services utiles :
+
+```text
+Port 3000  → votre application Web
+Port 8080  → les rapports OWASP ZAP
+```
+
+Dans VS Code Codespaces, ouvrez l'onglet **Ports** :
+
+- cliquez sur l'adresse transférée du **port 3000** pour utiliser votre application ;
+- cliquez sur l'adresse transférée du **port 8080** pour afficher la liste des rapports ZAP, puis ouvrez le fichier `zap-baseline-....html` ou `zap-full-....html`.
+
+Vous n'avez pas à lancer ces serveurs vous-même. Le laboratoire s'en charge.
+
+### Pourquoi le port 3000 peut-il être « déjà utilisé » ?
+
+C'est normalement une bonne nouvelle : le **superviseur du laboratoire a déjà démarré votre application**. L'assistant IA ne doit donc pas exécuter une deuxième fois `npm start`, `node server.js`, Flask, Uvicorn, etc.
+
+```text
+Assistant IA
+   │ écrit/modifie app/
+   ▼
+Superviseur du laboratoire
+   │ démarre/redémarre l'application
+   ▼
+127.0.0.1:3000
+   │
+   ├── affichage navigateur via le port 3000 Codespaces
+   └── analyse automatique OWASP ZAP
+
+reports/
+   │
+   └── serveur de rapports → port 8080 → navigateur
+```
+
+Si l'assistant veut vérifier son travail, il doit tester l'instance déjà lancée, par exemple avec :
+
+```bash
+curl -i http://127.0.0.1:3000/
+```
+
+Il ne doit pas tuer le processus existant ni démarrer une seconde instance.

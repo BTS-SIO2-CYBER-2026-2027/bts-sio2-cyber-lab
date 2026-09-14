@@ -5,11 +5,16 @@
     "ghcr.io/devcontainers/features/docker-in-docker:4": {}
   },
   "forwardPorts": [
-    3000
+    3000,
+    8080
   ],
   "portsAttributes": {
     "3000": {
       "label": "Application Web - BTS SIO",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Rapports OWASP ZAP - BTS SIO",
       "onAutoForward": "notify"
     }
   },
@@ -27,5 +32,5 @@
   },
   "postCreateCommand": "bash scripts/setup-lab.sh",
   "remoteUser": "node",
-  "postStartCommand": "bash scripts/start-auto-audit.sh"
+  "postStartCommand": "bash scripts/start-reports-server.sh && bash scripts/start-auto-audit.sh"
 }

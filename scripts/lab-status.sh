@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PID_FILE="$ROOT/.lab-state/auto-audit.pid"
-PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+source "$ROOT/scripts/lib.sh"
+load_lab_env
+STATE="$ROOT/.lab-state"
 
 echo "=== bts-sio-cyber-lab : état ==="
-if [[ "$PID" =~ ^[0-9]+$ ]] && kill -0 "$PID" 2>/dev/null && ps -p "$PID" -o args= 2>/dev/null | grep -Fq "$ROOT/scripts/auto-audit.sh"; then
+PID="$(cat "$STATE/auto-audit.pid" 2>/dev/null || true)"
+if [[ "$PID" =~ ^[0-9]+$ ]] && kill -0 "$PID" 2>/dev/null; then
   echo "Superviseur : ACTIF (PID $PID)"
 else
-  echo "Superviseur : ARRETE"
+  echo "Superviseur : INACTIF"
 fi
 
-if curl -sSf --max-time 2 http://127.0.0.1:3000 >/dev/null 2>&1; then
-  echo "Application : HTTP 200/OK sur 127.0.0.1:3000"
+if curl -sSf --max-time 2 "$APP_URL" >/dev/null 2>&1; then
+  CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$APP_URL" || true)"
+  echo "Application : HTTP $CODE sur $APP_URL"
 else
-  echo "Application : indisponible sur 127.0.0.1:3000"
+  echo "Application : INDISPONIBLE sur $APP_URL"
+fi
+
+RPID="$(cat "$STATE/reports-server.pid" 2>/dev/null || true)"
+if [[ "$RPID" =~ ^[0-9]+$ ]] && kill -0 "$RPID" 2>/dev/null; then
+  echo "Rapports Web : ACTIF (port 8080, PID $RPID)"
+else
+  echo "Rapports Web : INACTIF"
 fi
 
 echo "Rapports :"
-find "$ROOT/reports" -maxdepth 1 -type f -printf '  - %f\n' 2>/dev/null | sort
+find "$ROOT/reports" -maxdepth 1 -type f ! -name '.gitkeep' -printf '  - %f\n' 2>/dev/null | sort
