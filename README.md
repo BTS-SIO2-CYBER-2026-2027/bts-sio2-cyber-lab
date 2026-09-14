@@ -117,6 +117,16 @@ Le template sait démarrer automatiquement les cas courants suivants :
 
 Pour un autre framework, l'enseignant peut enrichir `scripts/detect-start-command.sh`.
 
+## État du laboratoire
+
+Vous pouvez vérifier à tout moment que le superviseur, l’application et les rapports sont bien actifs avec :
+
+```bash
+./scripts/lab-status.sh
+```
+
+Le fichier `reports/RESUME_SECURITE.md` est créé dès l’ouverture du Codespace. Avant le premier audit, il indique simplement que les rapports ZAP ne sont pas encore disponibles ; il est ensuite réécrit automatiquement après les scans.
+
 ## Diagnostic
 
 Le journal du superviseur se trouve dans :
