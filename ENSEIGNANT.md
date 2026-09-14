@@ -39,3 +39,11 @@ Le port 3000 est automatiquement transféré pour l'affichage dans le navigateur
 - recul critique sur l'usage de l'IA : 5 %.
 
 Ne pas noter l'élève sur le simple nombre de vulnérabilités trouvées : deux IA, deux prompts ou deux stacks peuvent produire des résultats différents.
+
+## Résumé de sécurité automatique
+
+Après chaque scan ZAP, `scripts/generate-security-summary.py` reconstruit automatiquement `reports/RESUME_SECURITE.md` à partir des derniers rapports JSON Baseline et Full Scan. Le fichier présente les nombres d'alertes par niveau et une liste synthétique des alertes principales.
+
+Ce résumé est volontairement présenté comme une aide de lecture et non comme une validation de sécurité : l'élève doit encore ouvrir les rapports HTML, retrouver la cause dans le code et vérifier la correction après un nouveau scan.
+
+Le superviseur surveille également la disponibilité du port 3000 après l'audit. Si un assistant IA arrête le serveur qu'il avait lancé pour ses propres tests, le laboratoire relance automatiquement l'application générée sans demander d'intervention à l'élève.

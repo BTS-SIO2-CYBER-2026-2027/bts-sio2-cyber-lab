@@ -49,4 +49,5 @@ set -e
 
 echo ""
 echo "Rapport généré : reports/$HTML"
+python3 "$ROOT/scripts/generate-security-summary.py" || true
 exit "$STATUS"

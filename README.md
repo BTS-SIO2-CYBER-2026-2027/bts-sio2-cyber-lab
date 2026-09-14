@@ -1,45 +1,110 @@
 # bts-sio-cyber-lab
 
-> **Nom du template GitHub : `bts-sio-cyber-lab`**
+> **Template GitHub Codespaces pour BTS SIO : génération d'une application Web avec une IA, puis audit automatique avec OWASP ZAP.**
 
-Template GitHub Codespaces pour générer une application Web avec une IA puis l'auditer automatiquement avec OWASP ZAP.
+## Objectif pédagogique
 
-## Principe
+Vous devez produire **le meilleur prompt possible**. Vous pouvez demander à l'IA une application robuste, des bonnes pratiques de développement et des mesures de sécurité.
 
-L'élève produit **le meilleur prompt possible**. L'application est générée directement dans `app/` par l'assistant IA utilisé dans VS Code. Il n'y a aucune copie ni remplacement manuel.
+Le but du laboratoire n'est pas de vous piéger avec un mauvais prompt. Il est de vérifier une idée essentielle : **même avec un prompt sérieux et une application qui semble fonctionner, le code généré par une IA doit être compris, testé et audité.**
 
-Un superviseur lancé automatiquement avec le Codespace surveille `app/`. Lorsque le code reste stable quelques secondes et devient exécutable, le laboratoire :
+Vous ne devez donc pas seulement constater que l'application fonctionne. Vous devez être capable d'expliquer le code produit, d'identifier les faiblesses détectées et de les corriger.
 
-1. installe automatiquement les dépendances détectées ;
-2. démarre l'application sur le port `3000` ;
-3. attend que `http://127.0.0.1:3000` réponde ;
-4. exécute automatiquement un ZAP Baseline Scan ;
-5. exécute automatiquement un ZAP Full Scan ;
-6. place les rapports dans `reports/`.
-
-Les scripts ZAP refusent les domaines et IP externes : la cible est verrouillée sur `localhost` / `127.0.0.1`.
-
-## Flux élève
+## Comment fonctionne le laboratoire ?
 
 ```text
-Prompt de l'élève
-       ↓
-Assistant IA dans VS Code
-       ↓
-Écriture directe dans app/
-       ↓
-Détection automatique
-       ↓
-Démarrage de l'application
-       ↓
-127.0.0.1:3000 répond
-       ↓
-ZAP Baseline
-       ↓
-ZAP Full Scan
-       ↓
-reports/
+Navigateur de l'élève
+        │
+        │ URL Codespaces : *.app.github.dev
+        ▼
+┌────────────────────────── GitHub Codespace ──────────────────────────┐
+│                                                                      │
+│     Assistant IA (Copilot / autre)                                  │
+│                 │                                                    │
+│                 │ génère le code directement                        │
+│                 ▼                                                    │
+│              app/                                                    │
+│                 │                                                    │
+│                 ▼                                                    │
+│        Application Web générée                                       │
+│          127.0.0.1:3000                                              │
+│                 ▲                                                    │
+│                 │ cible locale uniquement                            │
+│                 │                                                    │
+│         OWASP ZAP automatique                                        │
+│                 │                                                    │
+│        ┌────────┴─────────┐                                          │
+│        ▼                  ▼                                          │
+│  Baseline Scan        Full Scan                                      │
+│  (passif)             (actif)                                        │
+│        └────────┬─────────┘                                          │
+│                 ▼                                                    │
+│             reports/                                                 │
+│        rapports HTML + JSON                                          │
+│        RESUME_SECURITE.md                                             │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
 ```
+
+### Explication du schéma
+
+L'adresse en `*.app.github.dev` sert uniquement à **afficher votre application dans votre navigateur**. Elle est créée par GitHub Codespaces pour vous permettre d'accéder au port 3000 du Codespace.
+
+À l'intérieur du Codespace, l'application fonctionne sur :
+
+```text
+http://127.0.0.1:3000
+```
+
+OWASP ZAP analyse **cette adresse locale**. Les scripts du laboratoire refusent volontairement les domaines Internet et les autres adresses IP. Vous ne devez donc pas choisir manuellement une cible de scan.
+
+Le **Baseline Scan** réalise principalement une exploration et une analyse passive. Le **Full Scan** réalise ensuite des tests actifs contre votre propre application de laboratoire.
+
+Les résultats sont enregistrés automatiquement dans `reports/`. Le fichier `RESUME_SECURITE.md` est également généré automatiquement pour vous donner une première synthèse des alertes par niveau de risque. Vous devez cependant consulter les rapports HTML et le code source : le résumé ne remplace pas votre analyse.
+
+## Déroulement pour l'élève
+
+```text
+Votre prompt
+    ↓
+IA dans VS Code
+    ↓
+Création automatique de l'application dans app/
+    ↓
+Détection du code par le laboratoire
+    ↓
+Démarrage automatique sur le port 3000
+    ↓
+ZAP Baseline Scan
+    ↓
+ZAP Full Scan
+    ↓
+Rapports + RESUME_SECURITE.md
+    ↓
+Analyse du code
+    ↓
+Correction
+    ↓
+Nouveau scan automatique
+```
+
+Aucune copie manuelle de l'application n'est nécessaire. L'assistant IA écrit directement dans `app/` et le superviseur du laboratoire surveille ce dossier.
+
+## Que devez-vous analyser ?
+
+Dans `reports/`, vous trouverez notamment :
+
+```text
+zap-baseline-AAAAmmjj-HHMMSS.html
+zap-baseline-AAAAmmjj-HHMMSS.json
+zap-full-AAAAmmjj-HHMMSS.html
+zap-full-AAAAmmjj-HHMMSS.json
+RESUME_SECURITE.md
+```
+
+Commencez par `RESUME_SECURITE.md`, puis ouvrez les rapports HTML complets. Pour chaque alerte importante, recherchez ensuite la partie du code qui peut l'expliquer.
+
+Une alerte ZAP n'est pas une preuve suffisante à elle seule : il peut exister des faux positifs, et certaines failles ne sont pas détectables automatiquement. **Votre compréhension du code reste indispensable.**
 
 ## Stacks détectées automatiquement
 
@@ -54,14 +119,26 @@ Pour un autre framework, l'enseignant peut enrichir `scripts/detect-start-comman
 
 ## Diagnostic
 
-Le journal du superviseur est disponible dans :
+Le journal du superviseur se trouve dans :
 
 ```text
 .lab-state/auto-audit.log
 ```
 
-Le journal de l'application est disponible dans :
+Le journal de l'application se trouve dans :
 
 ```text
 .lab-state/app.log
+```
+
+Pour vérifier l'état de l'application depuis le terminal du Codespace :
+
+```bash
+curl -I http://127.0.0.1:3000
+```
+
+Pour lister les rapports générés :
+
+```bash
+find reports -maxdepth 1 -type f -printf '%f\n' | sort
 ```

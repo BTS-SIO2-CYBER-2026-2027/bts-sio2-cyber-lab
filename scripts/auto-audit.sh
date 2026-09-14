@@ -33,9 +33,13 @@ stop_previous_app() {
   fi
 }
 
+is_app_healthy() {
+  curl --silent --fail --max-time 2 "$APP_URL" >/dev/null 2>&1
+}
+
 wait_for_app() {
   for _ in $(seq 1 60); do
-    if curl --silent --fail --max-time 2 "$APP_URL" >/dev/null 2>&1; then
+    if is_app_healthy; then
       return 0
     fi
     sleep 2
@@ -43,17 +47,20 @@ wait_for_app() {
   return 1
 }
 
-run_audit_cycle() {
-  local hash="$1"
-  echo "[$(date '+%H:%M:%S')] Code généré détecté. Préparation de l'application..."
+start_managed_app() {
   stop_previous_app
   : > "$LOG_FILE"
-
   set +e
   "$ROOT/scripts/start-generated-app.sh" >"$LOG_FILE" 2>&1 &
   APP_PID=$!
   set -e
   echo "$APP_PID" > "$APP_PID_FILE"
+}
+
+run_audit_cycle() {
+  local hash="$1"
+  echo "[$(date '+%H:%M:%S')] Code généré détecté. Préparation de l'application..."
+  start_managed_app
 
   if ! wait_for_app; then
     echo "[$(date '+%H:%M:%S')] L'application ne répond pas encore sur $APP_URL."
@@ -96,8 +103,14 @@ while true; do
     LAST_AUDITED="$(cat "$LAST_HASH_FILE" 2>/dev/null || true)"
     if [[ "$CURRENT" != "$LAST_AUDITED" ]] && (( NOW - STABLE_SINCE >= DEBOUNCE )); then
       run_audit_cycle "$CURRENT"
-      # Empêche de relancer en boucle sur un code non exécutable inchangé.
-      echo "$CURRENT" > "$LAST_HASH_FILE"
+    elif [[ "$CURRENT" == "$LAST_AUDITED" ]] && ! is_app_healthy; then
+      echo "[$(date '+%H:%M:%S')] Application arrêtée après l'audit : redémarrage automatique."
+      start_managed_app
+      if wait_for_app; then
+        echo "[$(date '+%H:%M:%S')] Application relancée sur $APP_URL."
+      else
+        echo "[$(date '+%H:%M:%S')] Échec du redémarrage. Nouvelle tentative au prochain cycle."
+      fi
     fi
   fi
   sleep 3
